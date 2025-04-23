@@ -3,11 +3,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
-
-# ---------- page setup ------------------------------------------------------
 st.set_page_config(page_title="CRM Sales Dashboard", layout="wide")
 
-# Inject a tiny bit of CSS to make the KPI cards pop
+#CSS
 st.markdown(
     """
     <style>
@@ -33,10 +31,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---------- load data --------------------------------------------------------
+#load df
 df = pd.read_parquet("data/pipeline.parquet")
 
-# ---------- sidebar filters --------------------------------------------------
+#sidebar
 with st.sidebar:
     st.header("🔍 Filters")
 
@@ -57,11 +55,11 @@ with st.sidebar:
         value=(df.close_date.min(), df.close_date.max()),
     )
 
-# Convert widget output (python datetime.date) to pandas Timestamp for comparison
+#convert output
 date_min = pd.to_datetime(date_min)
 date_max = pd.to_datetime(date_max)
 
-# ---------- apply filters ----------------------------------------------------
+#filter
 mask = (
     df.deal_stage.isin(stage_sel)
     & df.sales_agent.isin(rep_sel)
@@ -69,13 +67,13 @@ mask = (
 )
 filtered = df.loc[mask]
 
-# ---------- KPI cards --------------------------------------------------------
+#KPIs
 pipe_total = int(filtered.close_value.sum())
 won_rev = int(filtered.loc[filtered.is_won == 1, "close_value"].sum())
 conv_rate = (filtered.is_won.sum() / len(filtered) * 100) if len(filtered) else 0
 cycle_days = round(filtered.loc[filtered.is_won == 1, "deal_age"].mean() or 0)
 
-# Use custom HTML cards for nicer styling
+#KPI HTML
 kpi_cols = st.columns(4)
 for col, label, value in zip(
     kpi_cols,
@@ -89,10 +87,10 @@ for col, label, value in zip(
 
 st.markdown("---")
 
-# ---------- visuals ----------------------------------------------------------
+#Visual
 col1, col2 = st.columns([1, 1])
 
-# 1. Funnel (left)
+#Funnel
 funnel_order = [
     "Prospecting",
     "Engaging",
@@ -120,7 +118,7 @@ if not funnel_df.empty:
 else:
     col1.info("No data for funnel with current filters.")
 
-# 2. Won‑revenue trend (right)
+#Won-Rev Trend
 trend = (
     filtered.loc[filtered.is_won == 1]
     .groupby(pd.Grouper(key="close_date", freq="M"))["close_value"]
@@ -143,7 +141,7 @@ if not trend.empty:
 else:
     col2.info("No won‑revenue in selected period.")
 
-# ---------- notes / footer ---------------------------------------------------
+#Footer
 st.markdown(
     "<p style='text-align:center;font-size:0.8rem;color:#6b7280;'>"
     "Built with ❤️ using Streamlit & Plotly • Data source: Kaggle CRM Sales Predictive Analytics"
