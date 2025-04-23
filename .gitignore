@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.vscode/
+data/
+crm.duckdb
+
+*.parquet
+.kaggle/
+kaggle.json
+.env
+.env.*
+.DS_Store
